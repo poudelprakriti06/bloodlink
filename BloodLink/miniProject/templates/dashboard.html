@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}Donor Dashboard{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">🩸 Donor Dashboard</h2>
+    <a href="{% url 'donation_history' %}" class="btn btn-primary">🩸 Donation History</a>
+</div>
+
+{% if notifications %}
+
+    {% for notification in notifications %}
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="card-title mb-0">🩸 Blood Request</h5>
+                    {% if notification.blood_request.urgency == "Critical" %}
+                        <span class="badge bg-danger">Critical</span>
+                    {% elif notification.blood_request.urgency == "Urgent" %}
+                        <span class="badge bg-warning text-dark">Urgent</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Normal</span>
+                    {% endif %}
+                </div>
+
+                <p><strong>Blood Group:</strong> <span class="badge bg-danger">{{ notification.blood_request.blood_group }}</span></p>
+                <p><strong>Units Required:</strong> {{ notification.blood_request.units_required }}</p>
+                <p><strong>Units Fulfilled:</strong> {{ notification.blood_request.units_fulfilled }}</p>
+                <p><strong>Units Remaining:</strong> {{ notification.blood_request.units_remaining }}</p>
+
+                {% if notification.response == "Accepted" or notification.response == "Completed" or notification.response == "Received" %}
+                    <div class="alert alert-success">
+                        <strong>👤 Your Contribution:</strong><br>
+                        ✅ You have accepted <strong>1 unit</strong> of this blood request.
+                    </div>
+                {% endif %}
+
+                <p><strong>Hospital:</strong> {{ notification.blood_request.hospital }}</p>
+
+                <p>
+                    <strong>Location:</strong>
+                    {{ notification.blood_request.district }}
+                    {% if notification.blood_request.municipality %}, {{ notification.blood_request.municipality }}{% endif %}
+                    {% if notification.blood_request.ward %}, Ward {{ notification.blood_request.ward }}{% endif %}
+                    {% if notification.blood_request.area %}, {{ notification.blood_request.area }}{% endif %}
+                </p>
+
+                <p><strong>Required Date:</strong> {{ notification.blood_request.required_date }}</p>
+                <p><strong>Contact Person:</strong> {{ notification.blood_request.contact_person }}</p>
+                <p><strong>Contact Number:</strong> {{ notification.blood_request.contact_number }}</p>
+
+                {% if notification.blood_request.notes %}
+                    <p><strong>Additional Information:</strong> {{ notification.blood_request.notes }}</p>
+                {% endif %}
+
+                <hr>
+
+                {% if notification.response == "Declined" %}
+                    <div class="alert alert-danger mb-0">❌ You declined this blood request.</div>
+
+                {% elif notification.response == "Received" %}
+                    <div class="alert alert-success mb-0">
+                        🎉 Blood donation received and confirmed by the hospital.<br><br>
+                        🩸 Your contribution of <strong>1 unit</strong> has been successfully recorded.
+                    </div>
+
+                {% elif notification.response == "Completed" %}
+                    <div class="alert alert-success mb-3">
+                        🩸 <strong>Donation Completed Successfully.</strong><br>
+                        You completed your donation of <strong>1 unit</strong>.<br>
+                        ⏳ Waiting for the hospital to confirm that the blood was received.
+                    </div>
+
+                {% elif notification.response == "Accepted" %}
+                    <div class="alert alert-success mb-3">
+                        ✅ <strong>You accepted 1 unit.</strong><br>
+                        Please complete your donation when you donate the blood.
+                    </div>
+                    <form method="POST" action="{% url 'complete_donation' notification.blood_request.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary">🩸 Complete Donation</button>
+                    </form>
+
+                {% elif notification.blood_request.status == "Fulfilled" %}
+                    <div class="alert alert-success mb-0">🩸 All required blood units have been fulfilled.</div>
+
+                {% elif notification.blood_request.status == "Cancelled" %}
+                    <div class="alert alert-secondary mb-0">❌ This blood request has been cancelled.</div>
+
+                {% else %}
+                    <div class="mt-3">
+                        <form method="POST" action="{% url 'accept_blood_request' notification.blood_request.id %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success">✅ Accept 1 Unit</button>
+                        </form>
+                        <form method="POST" action="{% url 'decline_blood_request' notification.blood_request.id %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger">❌ Decline Request</button>
+                        </form>
+                    </div>
+                {% endif %}
+
+            </div>
+        </div>
+
+    {% endfor %}
+
+{% else %}
+    <div class="alert alert-info">🩸 You currently have no blood requests.</div>
+{% endif %}
+
+{% endblock %}
