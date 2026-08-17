@@ -3,6 +3,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.utils.decorators import method_decorator
 
 from .models import BloodRequest
 from .serializers import BloodRequestSerializer
@@ -51,19 +54,15 @@ class AcceptBloodRequestView(APIView):
             user=request.user
         )
 
-        # Count donors who have already accepted this request
-        accepted_count = Notification.objects.filter(
+        # Count donors who already occupy a unit slot (Accepted, Completed, or Received)
+        occupied_count = Notification.objects.filter(
             blood_request=blood_request,
-            response="Accepted"
+            response__in=["Accepted", "Completed", "Received"]
         ).count()
 
-        # Do not allow more donors than the required units
-        if accepted_count >= blood_request.units_required:
-
+        if occupied_count >= blood_request.units_required:
             return Response(
-                {
-                    "message": "All required donor units have already been accepted."
-                },
+                {"message": "All required donor units have already been accepted."},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -87,6 +86,14 @@ class AcceptBloodRequestView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+        # Check 90-day eligibility
+        if not donor.is_eligible():
+            messages.error(
+                request,
+                f"You cannot donate yet. You need to wait {donor.days_until_eligible()} more day(s) before your next donation."
+            )
+            return redirect("dashboard")
+
         # Mark notification as accepted
         notification.response = "Accepted"
         notification.is_read = True
@@ -95,12 +102,6 @@ class AcceptBloodRequestView(APIView):
         # Donor becomes unavailable
         donor.is_available = False
         donor.save()
-
-        # IMPORTANT:
-        # We do NOT increase units_fulfilled here.
-        #
-        # units_fulfilled increases only after
-        # the hospital confirms that blood was received.
 
         return redirect("dashboard")
 
@@ -299,4 +300,103 @@ class ConfirmBloodReceivedView(APIView):
         blood_request.save()
 
         # Return to hospital dashboard
+        return redirect("hospital_dashboard")
+
+
+# ============================================================
+# HOSPITAL CANCELS BLOOD REQUEST
+# ============================================================
+
+@method_decorator(login_required, name='dispatch')
+class CancelBloodRequestView(APIView):
+
+    def post(self, request, id):
+        blood_request = get_object_or_404(BloodRequest, id=id)
+        hospital = get_object_or_404(HospitalProfile, user=request.user)
+
+        if blood_request.hospital != hospital:
+            return Response(
+                {"message": "You are not authorized to cancel this request."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        if blood_request.status in ('Fulfilled', 'Cancelled'):
+            messages.error(request, "This request cannot be cancelled.")
+            return redirect("hospital_dashboard")
+
+        # Reset active donor notifications and free up donors who haven't donated yet
+        active_notifications = Notification.objects.filter(
+            blood_request=blood_request,
+            response__in=['Pending', 'Accepted', 'Completed']
+        ).select_related('donor')
+
+        for notif in active_notifications:
+            notif.response = 'Declined'
+            notif.is_read = True
+            notif.save()
+            # Only free donors who haven't actually donated
+            # (Received donors stay unavailable — they already donated)
+            donor = notif.donor
+            donor.is_available = True
+            donor.save()
+
+        blood_request.status = 'Cancelled'
+        blood_request.save()
+
+        messages.success(request, "Blood request cancelled and donors have been notified.")
+        return redirect("hospital_dashboard")
+
+
+# ============================================================
+# HOSPITAL REMOVES A SPECIFIC ACCEPTED DONOR
+# ============================================================
+
+@method_decorator(login_required, name='dispatch')
+class RemoveDonorView(APIView):
+
+    def post(self, request, id):
+        notification = get_object_or_404(
+            Notification,
+            id=id,
+            response='Accepted'
+        )
+
+        hospital = get_object_or_404(HospitalProfile, user=request.user)
+
+        if notification.blood_request.hospital != hospital:
+            return Response(
+                {"message": "You are not authorized."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        donor = notification.donor
+        notification.response = 'Declined'
+        notification.is_read = True
+        notification.save()
+
+        donor.is_available = True
+        donor.save()
+
+        return redirect('hospital_dashboard')
+
+
+# ============================================================
+# HOSPITAL DELETES BLOOD REQUEST
+# ============================================================
+
+@method_decorator(login_required, name='dispatch')
+class DeleteBloodRequestView(APIView):
+
+    def post(self, request, id):
+        blood_request = get_object_or_404(BloodRequest, id=id)
+
+        hospital = get_object_or_404(HospitalProfile, user=request.user)
+
+        if blood_request.hospital != hospital:
+            return Response(
+                {"message": "You are not authorized to delete this request."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        blood_request.delete()
         return redirect("hospital_dashboard")

@@ -44,4 +44,25 @@ urlpatterns = [
         views.ConfirmBloodReceivedView.as_view(),
         name='confirm_blood_received'
     ),
+
+    # Hospital cancels blood request
+    path(
+        '<int:id>/cancel/',
+        views.CancelBloodRequestView.as_view(),
+        name='cancel_blood_request'
+    ),
+
+    # Hospital deletes blood request
+    path(
+        '<int:id>/delete/',
+        views.DeleteBloodRequestView.as_view(),
+        name='delete_blood_request'
+    ),
+
+    # Hospital removes a specific accepted donor
+    path(
+        'remove-donor/<int:id>/',
+        views.RemoveDonorView.as_view(),
+        name='remove_donor'
+    ),
 ]

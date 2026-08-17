@@ -8,23 +8,20 @@ from .services import get_coordinates
 @receiver(post_save, sender=DonorProfile)
 def generate_donor_coordinates(sender, instance, created, **kwargs):
 
-    if not instance.latitude and not instance.longitude:
+    if not created:
+        return
 
-        coordinates = get_coordinates(
-            district=instance.district,
-            municipality=instance.municipality,
-            ward=instance.ward,
-            area=instance.area
-        )
+    if instance.latitude and instance.longitude:
+        return
 
-        if coordinates:
+    coordinates = get_coordinates(
+        district=instance.district,
+        municipality=instance.municipality,
+        ward=instance.ward,
+        area=instance.area
+    )
 
-            instance.latitude = coordinates["latitude"]
-            instance.longitude = coordinates["longitude"]
-
-            instance.save(
-                update_fields=[
-                    "latitude",
-                    "longitude"
-                ]
-            )
+    if coordinates:
+        instance.latitude = coordinates["latitude"]
+        instance.longitude = coordinates["longitude"]
+        instance.save(update_fields=["latitude", "longitude"])

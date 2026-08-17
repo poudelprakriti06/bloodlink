@@ -124,16 +124,35 @@ class DonorProfile(models.Model):
             return True
         days_since = (timezone.now().date() - self.last_donation_date).days
         return days_since >= 90
+
+    def days_until_eligible(self):
+        if not self.last_donation_date:
+            return 0
+        days_since = (timezone.now().date() - self.last_donation_date).days
+        remaining = 90 - days_since
+        return max(remaining, 0)
     
     def save(self, *args, **kwargs):
-        if self.district and self.municipality and self.ward and self.area:
+        # Only re-geocode if location fields changed and coordinates are missing
+        location_fields = ['district', 'municipality', 'ward', 'area']
+        if self.pk:
+            try:
+                old = DonorProfile.objects.get(pk=self.pk)
+                location_changed = any(
+                    getattr(old, f) != getattr(self, f) for f in location_fields
+                )
+            except DonorProfile.DoesNotExist:
+                location_changed = True
+        else:
+            location_changed = True
+
+        if location_changed and self.district and self.municipality and self.ward and self.area:
             coordinates = get_coordinates(
                 district=self.district,
                 municipality=self.municipality,
                 ward=self.ward,
                 area=self.area
             )
-
             if coordinates:
                 self.latitude = coordinates["latitude"]
                 self.longitude = coordinates["longitude"]

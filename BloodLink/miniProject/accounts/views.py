@@ -47,9 +47,7 @@ def register_view(request):
                 area=form.cleaned_data['area'],
                 phone=form.cleaned_data['phoneno'],
                 gender=form.cleaned_data['gender'],
-                date_of_birth=form.cleaned_data.get(
-                    'date_of_birth'
-                ) or '2000-01-01',
+                date_of_birth=form.cleaned_data['date_of_birth'],
                 is_available=True
             )
 

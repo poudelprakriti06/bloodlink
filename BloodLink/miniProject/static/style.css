@@ -174,3 +174,168 @@ footer { background: #2c2c2c; color: #aaa; text-align: center; padding: 1rem; fo
   .hero h1 { font-size: 1.8rem; }
   nav ul { gap: .6rem; }
 }
+
+/* ── Modal Overlay ── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  justify-content: center;
+  align-items: center;
+}
+.modal-overlay.modal-top { align-items: flex-start; padding-top: 40px; }
+.modal-box {
+  background: #fff;
+  width: 420px;
+  max-width: 95%;
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+  box-shadow: 0 5px 24px rgba(0,0,0,.25);
+}
+.modal-box-wide {
+  background: #fff;
+  width: 580px;
+  max-width: 95%;
+  max-height: 85vh;
+  overflow-y: auto;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 5px 24px rgba(0,0,0,.25);
+}
+.modal-box h2, .modal-box-wide h2 { margin-bottom: .8rem; }
+.modal-box p { color: #555; line-height: 1.6; }
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.4rem;
+}
+.modal-header h2 { color: var(--red); margin: 0; }
+.modal-close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #666;
+  line-height: 1;
+}
+.modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+.modal-form-actions {
+  display: flex;
+  gap: .8rem;
+  margin-top: .5rem;
+}
+.modal-title-red { color: var(--red); }
+.modal-title-danger { color: #e74c3c; }
+.modal-title-warning { color: #856404; }
+
+/* ── Hospital Dashboard ── */
+.hosp-welcome { margin-bottom: 1.4rem; color: #666; }
+.hosp-welcome .badge { margin-left: .5rem; }
+
+.card-warning { border-left-color: #856404; }
+.card-warning h3 { color: #856404; }
+.card-success { border-left-color: #27ae60; }
+.card-success h3 { color: #27ae60; }
+
+.toggle-wrap { margin-bottom: 1rem; text-align: right; }
+
+.request-card { border-left-width: 5px; margin-bottom: 1.6rem; padding: 1.6rem; }
+.fulfilled-card { display: none; }
+
+.request-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: .8rem;
+  margin-bottom: 1rem;
+}
+.request-badges { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; }
+.badge-blood-group { font-size: .9rem; padding: .3rem .8rem; }
+.request-actions { display: flex; align-items: center; gap: .6rem; }
+.request-date { font-size: .85rem; color: #999; }
+
+.request-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: .3rem .8rem;
+  font-size: .92rem;
+  margin-bottom: 1rem;
+}
+.request-details .full-col { grid-column: 1 / -1; }
+
+.request-notes { font-size: .88rem; color: #666; font-style: italic; margin-bottom: 1rem; }
+
+.progress-wrap { margin-bottom: 1rem; }
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: .82rem;
+  color: #777;
+  margin-bottom: .3rem;
+}
+.progress-track { background: #f0f0f0; border-radius: 20px; height: 8px; overflow: hidden; }
+.progress-bar { height: 100%; border-radius: 20px; background: var(--red); }
+.progress-bar.fulfilled { background: #27ae60; }
+
+.section-divider { border: none; border-top: 1px solid var(--border); margin-bottom: 1rem; }
+
+.donors-heading { color: #333; margin-bottom: .8rem; }
+.donors-heading span { font-size: .85rem; font-weight: 400; color: #777; }
+
+.donor-card {
+  background: #f8f8f8;
+  border-left: 4px solid var(--red);
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: .8rem;
+}
+.donor-card.status-received { border-left-color: #27ae60; }
+.donor-card.status-completed { border-left-color: #0c5460; }
+.donor-card.status-accepted { border-left-color: #856404; }
+.donor-card.status-declined { border-left-color: #999; }
+
+.donor-card-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: .5rem;
+  margin-bottom: .6rem;
+}
+.donor-name { font-size: .95rem; }
+.donor-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: .2rem .8rem;
+  font-size: .87rem;
+  color: #555;
+}
+.donor-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: .6rem;
+}
+.donor-status-msg { font-size: .88rem; margin: 0; }
+.donor-status-msg.msg-received { color: #155724; }
+.donor-status-msg.msg-accepted { color: #856404; }
+.donor-status-msg.msg-declined { color: #721c24; }
+.donor-status-msg.msg-pending { color: #856404; }
+.donor-confirm-wrap { margin-top: .8rem; }
+
+.no-requests-box { text-align: center; padding: 3rem; }
+.no-requests-box p { font-size: 1.1rem; color: #999; }
+.no-requests-box p.sub { color: #bbb; margin-top: .4rem; font-size: .9rem; }
+
+.btn-cancel-request { background: #856404; color: #fff; }
+.btn-cancel-request:hover { opacity: .85; }

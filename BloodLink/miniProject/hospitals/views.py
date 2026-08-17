@@ -39,11 +39,18 @@ def hospital_dashboard_view(request):
     ).order_by('-created_at')
 
     request_data = []
+    active_count = 0
+    fulfilled_count = 0
 
     for blood_request in blood_requests:
         notifications = Notification.objects.filter(
             blood_request=blood_request
         ).select_related('donor', 'donor__user')
+
+        if blood_request.status == 'Fulfilled':
+            fulfilled_count += 1
+        elif blood_request.status not in ('Cancelled',):
+            active_count += 1
 
         request_data.append({
             'blood_request': blood_request,
@@ -56,5 +63,8 @@ def hospital_dashboard_view(request):
         {
             'hospital': hospital,
             'request_data': request_data,
+            'total_count': len(request_data),
+            'active_count': active_count,
+            'fulfilled_count': fulfilled_count,
         }
     )

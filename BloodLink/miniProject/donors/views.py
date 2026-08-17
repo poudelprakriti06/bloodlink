@@ -17,25 +17,18 @@ class DonorProfileForm(forms.ModelForm):
             'municipality',
             'ward',
             'area',
-            'last_donation_date',
             'is_available',
             'profile_picture'
         ]
+        # last_donation_date intentionally excluded — set only by system on confirmed donation
 
         widgets = {
-            'date_of_birth': forms.DateInput(
-                attrs={'type': 'date'}
-            ),
-            'last_donation_date': forms.DateInput(
-                attrs={'type': 'date'}
-            ),
+            'date_of_birth': forms.DateInput(attrs={'type': 'date'}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        for field in ['last_donation_date', 'profile_picture']:
-            self.fields[field].required = False
+        self.fields['profile_picture'].required = False
 
 
 @login_required

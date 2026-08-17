@@ -142,14 +142,25 @@ class BloodRequest(models.Model):
     
 
     def save(self, *args, **kwargs):
-        if self.district and self.municipality and self.ward and self.area:
+        location_fields = ['district', 'municipality', 'ward', 'area']
+        if self.pk:
+            try:
+                old = BloodRequest.objects.get(pk=self.pk)
+                location_changed = any(
+                    getattr(old, f) != getattr(self, f) for f in location_fields
+                )
+            except BloodRequest.DoesNotExist:
+                location_changed = True
+        else:
+            location_changed = True
+
+        if location_changed and self.district and self.municipality and self.ward and self.area:
             coordinates = get_coordinates(
                 district=self.district,
                 municipality=self.municipality,
                 ward=self.ward,
                 area=self.area
             )
-
             if coordinates:
                 self.latitude = coordinates["latitude"]
                 self.longitude = coordinates["longitude"]
